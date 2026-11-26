@@ -3,14 +3,14 @@
 ## Requirements
 Windows 10 (21H2+) or 11, x64. No admin rights, no internet connection, no account.
 
-## Install / upgrade / uninstall (v0.9 preview zip)
+## Install / upgrade / uninstall (v1.0)
 | Action | Steps |
 |---|---|
-| Install | Unzip `Task Reminder-0.9.0-win.zip` to a permanent folder; run `Task Reminder.exe`. On first run the app registers itself to start with Windows (minimised to the tray, `--hidden`). |
-| Upgrade | Quit from the tray, replace the folder contents with the new zip, start again. Data is not in the app folder, so it is kept. |
-| Uninstall | Quit from the tray; in *Settings → Apps → Startup* turn Task Reminder off (sprint 2 adds a setting); delete the folder. Delete `%APPDATA%\TaskReminder` only if you want to remove your tasks. |
-
-From v1.0 a per-user installer (`TaskReminder-Setup-x.y.z.exe`) and a portable exe replace the zip.
+| Install | Run `TaskReminder-Setup-1.0.0.exe` (per-user into `%LOCALAPPDATA%\Programs\Task Reminder`, no admin). It creates Start-menu and desktop shortcuts and registers the `taskreminder://` link used by notification buttons. On first run the app registers itself to start with Windows (minimised to the tray, `--hidden`). |
+| Portable | Run `TaskReminder-Portable-1.0.0.exe` from any folder. Notification buttons work once the app has run once (it registers `taskreminder://` itself). |
+| Upgrade | Quit from the tray and run the newer installer. Data is not in the app folder, so it is kept. Export first if you want an extra backup. |
+| Uninstall | *Windows Settings → Apps → Task Reminder → Uninstall*. Delete `%APPDATA%\TaskReminder` only if you also want to remove your tasks. |
+| From the v0.9 zip | Quit the old app from the tray, install v1.0, then delete the old unzipped folder. Tasks are kept. |
 
 ## Files
 | Path | Purpose |
@@ -22,9 +22,14 @@ From v1.0 a per-user installer (`TaskReminder-Setup-x.y.z.exe`) and a portable e
 | `%APPDATA%\TaskReminder\electron\` | Electron's own cache/profile |
 
 ## Configuration
-There is no configuration UI yet (sprint 2). `settings.json` can be edited while the app is not running:
-- `"launchAtStartup": false` stops auto-start (applied on next start).
-- `"defaultOffsets": [1440, 60, 0]` gives new tasks reminders 1 day, 1 hour and 0 minutes before the deadline (max 5).
+Everything is in the app under **Settings**: start with Windows, default reminders for new tasks, export/import. The same values live in `settings.json` (`launchAtStartup`, `defaultOffsets` in minutes, max 5). `lastCheckedAt` is written by the app and drives the missed-reminder catch-up; don't edit it.
+
+| Fixed setting | Value |
+|---|---|
+| Quick-add shortcut | `Ctrl+Alt+T` (if another app owns it, Settings says so; use the tray menu) |
+| "Due" for badge/banner | overdue, or due within the next 60 minutes |
+| Missed reminder | shown more than 2 minutes after its time (PC off/asleep) |
+| Notification link scheme | `taskreminder://open|done|snooze?id=…&c=10m|1h|tomorrow` (anything else is ignored) |
 
 Environment variables (developer/test use only):
 | Variable | Effect |
@@ -38,11 +43,12 @@ Single user, no accounts, no passwords. Data is protected by the Windows account
 ## Troubleshooting
 | Symptom | Cause / fix |
 |---|---|
-| No notifications | Windows notifications off for the app, or Focus Assist on. Check *Settings → System → Notifications*. Unpacked (zip) builds without a Start-menu shortcut may have toasts suppressed on some Windows builds; see the sprint 1 report, risk R-07. |
+| No notifications | Windows notifications off for the app, or Focus Assist on. Check *Settings → System → Notifications*. The tray badge and "Due now" banner still work. The portable exe has no Start-menu shortcut, which on some Windows builds suppresses toasts: use the installer. |
+| Notification buttons do nothing | The `taskreminder://` link is not registered: run the installer version, or start the portable exe once. |
 | App starts twice | It can't: a second start just brings the first window forward. |
 | "Restored from backup" banner | `tasks.json` was unreadable; the backup was loaded and the damaged file kept as `tasks.corrupt-*.json`. |
 | "Could not be read… new list was started" | Both files were unreadable. Recover by renaming a `tasks.corrupt-*.json` you can repair, or ask for help. |
-| Reminders late after sleep | Catch-up after sleep/resume is sprint 2 (US-009). |
+| Reminders after sleep | On wake-up the app shows anything that fell due while asleep, once ("You missed N reminders"). |
 
 ## Backup
-Copy `%APPDATA%\TaskReminder\tasks.json` somewhere safe (for example a OneDrive folder). Export/Import from the app arrives in sprint 2.
+Settings → **Export tasks…** saves a JSON file you can keep in OneDrive; **Import tasks…** restores it (asks first; the replaced list is kept as `tasks.bak.json`).

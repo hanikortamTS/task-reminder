@@ -1,15 +1,17 @@
-# Windows preview checklist (v0.9.0) — about 10 minutes
+# Windows checklist (v1.0.0) — about 10 minutes
 
 Please run these on your PC and tell me which ones fail. Each line names the story it checks.
 
-1. [ ] Unzip, start `Task Reminder.exe` → window opens, ✓ icon in the tray. (US-013)
-2. [ ] Add "Test reminder" with a custom deadline **3 minutes from now** → it appears under Today. (US-001)
-3. [ ] Wait → a Windows notification "Test reminder · Due now (hh:mm)" appears at that time, with sound. (US-007)
-4. [ ] Click the notification → the app opens with that task selected. (US-010)
-5. [ ] Add "Test early" due in **62 minutes** → after ~2 minutes a "Due in 1 h" notification appears. (US-007)
-6. [ ] Close the window with X → the app keeps running in the tray; click the tray icon → it comes back. (US-013)
-7. [ ] Right-click tray → Quit → the icon disappears. Start again → your tasks are still there. (US-013, US-015)
-8. [ ] Restart Windows → Task Reminder starts by itself in the tray (no window). (US-013)
-9. [ ] Does the app follow your Windows dark/light mode? Does anything look cramped or confusing?
+1. [ ] Quit the old v0.9 app if it is running (tray → Quit). Run `TaskReminder-Setup-1.0.0.exe` → the app opens, ✓ icon in the tray, "Task Reminder" in the Start menu. Your v0.9 tasks are still there. (US-017)
+2. [ ] Add "Test reminder" with a custom deadline **3 minutes from now**. (US-001)
+3. [ ] At that time a notification appears with sound and buttons **Done / Snooze 10 min / Snooze 1 hour / Tomorrow 9:00**. (US-007, US-011)
+4. [ ] Click **Snooze 10 min** → it comes back 10 minutes later. Then click **Done** → the task moves to Done. (US-011)
+5. [ ] Add another task due in 3 minutes; when it pops up, click the notification text → the app opens on that task with Done/Snooze at the top. (US-010)
+6. [ ] With a task due within the hour, the tray icon shows a red number and the app shows a "Due now" banner. (US-012)
+7. [ ] Press **Ctrl+Alt+T** while in another app → small box; type, Enter → task saved. (US-014)
+8. [ ] Open a task → add notes, set priority, add "1 day before" under Reminders. Press **/** and search for a word from the notes. (US-002, US-006, US-008)
+9. [ ] Settings → Export tasks… → a file is saved. (US-016)
+10. [ ] Add a task due in 5 minutes, quit the app from the tray, wait 6 minutes, start it again → the missed reminder pops up right away (with two or more missed, you get one "You missed N reminders" notification). (US-009)
+11. [ ] Restart Windows → Task Reminder starts by itself in the tray. (US-013)
 
-If step 3 or 5 shows no notification: note whether Focus Assist was on, and check *Settings → System → Notifications → Task Reminder*.
+If notifications don't appear: check Focus Assist / Do not disturb and *Settings → System → Notifications → Task Reminder*.
