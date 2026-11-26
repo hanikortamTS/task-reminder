@@ -68,3 +68,18 @@ export function viewCounts(tasks: Task[], now: Date) {
     done: doneView(tasks, now).length,
   };
 }
+
+/** Case-insensitive search over title and notes (SR-009, US-006). Empty query keeps everything. */
+export function searchTasks(tasks: Task[], query: string): Task[] {
+  const q = query.trim().toLowerCase();
+  if (!q) return tasks;
+  return tasks.filter((x) => x.title.toLowerCase().includes(q) || x.notes.toLowerCase().includes(q));
+}
+
+export const DUE_SOON_MS = 60 * 60_000;
+
+/** "Due" for the tray badge and banner (SR-012): open and overdue, or due within the next hour. */
+export function dueTasks(tasks: Task[], now: Date): Task[] {
+  const limit = now.getTime() + DUE_SOON_MS;
+  return tasks.filter((x) => x.status === 'open' && x.deadline !== null && t(x.deadline) <= limit).sort(compareTasks);
+}
