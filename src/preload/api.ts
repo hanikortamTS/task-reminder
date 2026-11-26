@@ -19,7 +19,7 @@ const api = {
   reminders: { snooze: (id: string, choice: string) => invoke('reminders.snooze', id, choice) },
   settings: { get: () => invoke('settings.get'), set: (patch: unknown) => invoke('settings.set', patch) },
   data: { export: () => invoke('data.export'), import: () => invoke('data.import') },
-  app: { info: () => invoke('app.info') },
+  app: { info: () => invoke('app.info'), log: (level: string, message: string) => invoke('app.log', level, message) },
   quick: { close: () => invoke('quick.close') },
   onTasksChanged: (cb: (tasks: unknown) => void) => on('tasks.changed', cb),
   onFocusTask: (cb: (p: unknown) => void) => on('ui.focusTask', cb),

@@ -53,8 +53,6 @@ export class Notifier {
   private live = new Set<Notification>();
   /** Every notification shown this session; read by the E2E tests through electronApp.evaluate. */
   readonly history: ShownNotification[] = [];
-  /** Set to true while notifications are paused from the tray. */
-  paused = false;
 
   constructor(
     private readonly onClick: (taskId: string | null) => void,
@@ -63,7 +61,7 @@ export class Notifier {
 
   private show(n: ShownNotification): void {
     this.history.push(n);
-    if (this.paused || !Notification.isSupported()) return;
+    if (!Notification.isSupported()) return;
     const withButtons = this.windows && n.kind === 'reminder' && n.taskId !== null;
     const note = withButtons
       ? new Notification({ toastXml: reminderToastXml(n.taskId!, n.title, n.body) })

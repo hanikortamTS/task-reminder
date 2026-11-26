@@ -69,7 +69,18 @@ export function App() {
         setView('today');
       }),
     ];
-    return () => offs.forEach((off) => off());
+    // Any failed call to the app (save, delete, snooze, settings) shows a banner instead of failing silently (review G-04).
+    const onFail = (e: PromiseRejectionEvent) => {
+      e.preventDefault();
+      const msg = e.reason instanceof Error ? e.reason.message : String(e.reason);
+      setBanner(`That did not work: ${msg}. Please try again.`);
+      void api().app.log?.('error', msg);
+    };
+    window.addEventListener('unhandledrejection', onFail);
+    return () => {
+      offs.forEach((off) => off());
+      window.removeEventListener('unhandledrejection', onFail);
+    };
   }, []);
 
   const sections: Section[] = useMemo(() => {

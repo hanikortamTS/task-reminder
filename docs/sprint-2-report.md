@@ -23,7 +23,8 @@ Deferred: none.
 
 ## Test results (local, 26 Nov 2026)
 - Type-check and lint: clean.
-- Unit (Vitest): **52 passed (52)**; core coverage 99.61% ( 520/522 ) lines, 95.65% ( 242/253 ) branches.
+- Unit (Vitest): **52 passed (52)**; core coverage 99.61% ( 520/522 ) lines, 95.63% ( 241/252 ) branches (as reviewed).
+- After review fixes: **56 passed (56)**; 99.63% ( 541/543 ) lines, 95.91% ( 258/269 ) branches; coverage thresholds now enforced in CI.
 - End-to-end (Playwright + Electron 45, Xvfb), all 14:
 ```
   ✓   1 test/e2e/app.spec.ts:66:5 › US-001: add a task with a quick deadline chip; empty title is refused; no deadline goes to Upcoming (1.1s)
@@ -66,3 +67,13 @@ README, `docs/user-guide.md`, `docs/admin-guide.md`, `docs/user-manual.docx` (ne
 - Your Windows checklist results.
 - Merge PR #1, then tag `v1.0.0` to publish the GitHub release.
 - Independent coverage review and the delivery summary (closure).
+
+## Review fixes (after the Implementation Coverage Review)
+- G-02 checklist: steps 12–15 added (pause, import, dark mode, log file).
+- G-03 dark-mode contrast fixed (dark text on accent/red, 7.4:1 and 6.9:1).
+- G-04 failed actions now show a banner and are logged.
+- G-05 coverage thresholds in `vitest.config.ts`.
+- G-07 local log file (D-18).
+- G-08 decisions D-17 to D-20 recorded.
+- G-09 `shell.openExternal` removed; G-10 strict toast-link parser; G-13 US-001 test no longer fails after 23:00; G-16 unused `paused` field removed; G-19 branch figure corrected.
+- Still open, needs Hani: G-01 run the Windows checklist; G-06 merge, tag v1.0.0 and protect `main`. Accepted for v1.0: G-11, G-12 (DST), G-14, G-15, G-17 (unsigned exe), G-18.

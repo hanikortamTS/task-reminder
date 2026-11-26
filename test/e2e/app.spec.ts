@@ -77,7 +77,9 @@ test('US-001: add a task with a quick deadline chip; empty title is refused; no 
   await page.getByTestId('quickadd-input').fill('Send invoice');
   await page.getByTestId('chip-today').click();
   await page.getByTestId('quickadd-input').press('Enter');
-  await expect(page.getByTestId('view-today')).toBeVisible();
+  // After 23:00 the Today chip means "In 1 hour", which can fall tomorrow (review G-13).
+  const lateNight = new Date(Date.now() + 65 * 60_000).getDate() !== new Date().getDate();
+  await expect(page.getByTestId(lateNight ? 'view-upcoming' : 'view-today')).toBeVisible();
   await expect(rows(page)).toHaveCount(1);
   await expect(rows(page).first()).toContainText('Send invoice');
   await expect(page.getByTestId('quickadd-input')).toHaveValue('');

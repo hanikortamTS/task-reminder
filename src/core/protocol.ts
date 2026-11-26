@@ -27,6 +27,8 @@ export function parseActionUrl(raw: string): ToastAction | null {
     return null;
   }
   if (u.protocol !== `${PROTOCOL}:`) return null;
+  // Strict shape: no user info, port or path beyond "/" (review G-10).
+  if (u.username || u.password || u.port || (u.pathname !== '' && u.pathname !== '/')) return null;
   const action = u.hostname;
   const id = u.searchParams.get('id');
   if (id !== null && !ID.test(id)) return null;

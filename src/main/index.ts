@@ -1,5 +1,5 @@
 /** App shell — HLD-001 / LLD-001 (SR-005, SR-006, SR-010, SR-012, SR-014). */
-import { app, BrowserWindow, dialog, globalShortcut, powerMonitor, shell } from 'electron';
+import { app, BrowserWindow, dialog, globalShortcut, powerMonitor } from 'electron';
 import * as path from 'node:path';
 import { TaskStore } from '../core/taskStore';
 import { SettingsStore } from '../core/settingsStore';
@@ -7,6 +7,7 @@ import { dueTasks } from '../core/selectors';
 import { snoozeTarget } from '../core/dates';
 import { PROTOCOL, findActionUrl, type ToastAction } from '../core/protocol';
 import { exportTasks, readImport } from '../core/dataTransfer';
+import { createLogger } from '../core/logger';
 import { SchedulerService } from './schedulerService';
 import { Notifier } from './notifier';
 import { AppTray } from './tray';
@@ -21,6 +22,9 @@ const E2E = process.env.TASKREMINDER_E2E === '1';
 app.setName('Task Reminder');
 const dataDir = process.env.TASKREMINDER_DATA_DIR || path.join(app.getPath('appData'), 'TaskReminder');
 app.setPath('userData', path.join(dataDir, 'electron'));
+const logger = createLogger(path.join(dataDir, 'logs'));
+process.on('uncaughtException', (e) => logger.log('error', `uncaught: ${e.stack ?? e.message}`));
+process.on('unhandledRejection', (e) => logger.log('error', `unhandled rejection: ${String(e)}`));
 app.setAppUserModelId(APP_ID); // Windows only shows toasts for apps with an AppUserModelID.
 
 // taskreminder:// links from toast buttons (US-011). In development the script path must be passed too.
@@ -112,10 +116,7 @@ if (!app.requestSingleInstanceLock()) {
   const secureWindow = (w: BrowserWindow) => {
     // SR-014: no navigation away from the bundled UI and no new windows.
     w.webContents.on('will-navigate', (e) => e.preventDefault());
-    w.webContents.setWindowOpenHandler(({ url }) => {
-      if (url.startsWith('https://')) void shell.openExternal(url);
-      return { action: 'deny' };
-    });
+    w.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
   };
 
   const webPreferences = () => ({
@@ -227,6 +228,7 @@ if (!app.requestSingleInstanceLock()) {
   void app.whenReady().then(() => {
     settings.load();
     store.load();
+    logger.log('info', `start v${app.getVersion()} tasks=${store.list().length} load=${store.loadResult}`);
     registerIpc({
       store,
       settings,
@@ -245,6 +247,7 @@ if (!app.requestSingleInstanceLock()) {
         store.replaceAll(tasks);
         return { count: tasks.length };
       },
+      log: (level, message) => logger.log(level, message),
       closeQuick: () => quick?.hide(),
     });
     createWindow();

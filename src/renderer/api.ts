@@ -23,7 +23,7 @@ interface WindowApi {
   reminders: { snooze(id: string, choice: SnoozeChoice): Promise<R<Task>> };
   settings: { get(): Promise<R<Settings>>; set(patch: Partial<Pick<Settings, 'launchAtStartup' | 'defaultOffsets'>>): Promise<R<Settings>> };
   data: { export(): Promise<R<{ path: string; count: number } | null>>; import(): Promise<R<{ count: number } | null>> };
-  app: { info(): Promise<R<AppInfo>> };
+  app: { info(): Promise<R<AppInfo>>; log?(level: 'info' | 'warn' | 'error', message: string): Promise<R<void>> };
   quick: { close(): Promise<R<void>> };
   onTasksChanged(cb: (tasks: Task[]) => void): () => void;
   onFocusTask(cb: (p: { id: string; fromReminder?: boolean }) => void): () => void;
