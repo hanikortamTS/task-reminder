@@ -4,22 +4,31 @@ import type { Task } from './types';
 export interface Reminder {
   taskId: string;
   key: string;
-  /** Minutes before the deadline (0 = at deadline). */
+  /** 'deadline' = one of the task's offsets; 'snooze' = the time the user snoozed to (US-011). */
+  kind: 'deadline' | 'snooze';
+  /** Minutes before the deadline (0 = at deadline). 0 for snoozes. */
   offset: number;
   at: number;
 }
 
 export const reminderKey = (offset: number, deadline: string) => `${offset}@${deadline}`;
+export const snoozeKey = (until: string) => `snooze@${until}`;
 
 /** All reminders of a task, regardless of whether they were already shown. */
 export function remindersOf(task: Task): Reminder[] {
-  if (task.status !== 'open' || !task.deadline) return [];
-  const dl = Date.parse(task.deadline);
-  const created = Date.parse(task.createdAt);
-  return [...new Set(task.reminderOffsets)]
-    .map((offset) => ({ taskId: task.id, key: reminderKey(offset, task.deadline!), offset, at: dl - offset * 60_000 }))
-    // A reminder whose time was already past when the task was created is never shown.
-    .filter((r) => r.at > created);
+  if (task.status !== 'open') return [];
+  const out: Reminder[] = [];
+  if (task.deadline) {
+    const dl = Date.parse(task.deadline);
+    const created = Date.parse(task.createdAt);
+    for (const offset of new Set(task.reminderOffsets)) {
+      const at = dl - offset * 60_000;
+      // A reminder whose time was already past when the task was created is never shown.
+      if (at > created) out.push({ taskId: task.id, key: reminderKey(offset, task.deadline), kind: 'deadline', offset, at });
+    }
+  }
+  if (task.snoozedUntil) out.push({ taskId: task.id, key: snoozeKey(task.snoozedUntil), kind: 'snooze', offset: 0, at: Date.parse(task.snoozedUntil) });
+  return out;
 }
 
 /** Reminders that became due in the window (from, to] and were not shown yet, oldest first. */

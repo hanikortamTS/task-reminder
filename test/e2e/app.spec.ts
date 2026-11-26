@@ -8,8 +8,13 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 
 interface Seam {
-  notifications(): { taskId: string | null; title: string; body: string }[];
+  notifications(): { taskId: string | null; title: string; body: string; kind: string; actions: string[] }[];
   clickNotification(id: string | null): void;
+  toastAction(url: string): boolean;
+  openQuick(): void;
+  quickVisible(): boolean;
+  badge(): number;
+  setDialogPath(p: string | null): void;
   hideWindow(): void;
   isVisible(): boolean;
 }
@@ -27,9 +32,8 @@ async function launch(dataDir: string): Promise<{ app: ElectronApplication; page
   return { app, page };
 }
 
-function seed(dataDir: string, tasks: Record<string, unknown>[]) {
+function seed(dataDir: string, tasks: Record<string, unknown>[], created = new Date(Date.now() - 86_400_000).toISOString()) {
   const base = { notes: '', priority: false, reminderOffsets: [60, 0], status: 'open', snoozedUntil: null, firedReminders: [], completedAt: null };
-  const created = new Date(Date.now() - 86_400_000).toISOString();
   fs.mkdirSync(dataDir, { recursive: true });
   fs.writeFileSync(
     path.join(dataDir, 'tasks.json'),
@@ -73,7 +77,9 @@ test('US-001: add a task with a quick deadline chip; empty title is refused; no 
   await page.getByTestId('quickadd-input').fill('Send invoice');
   await page.getByTestId('chip-today').click();
   await page.getByTestId('quickadd-input').press('Enter');
-  await expect(page.getByTestId('view-today')).toBeVisible();
+  // After 23:00 the Today chip means "In 1 hour", which can fall tomorrow (review G-13).
+  const lateNight = new Date(Date.now() + 65 * 60_000).getDate() !== new Date().getDate();
+  await expect(page.getByTestId(lateNight ? 'view-upcoming' : 'view-today')).toBeVisible();
   await expect(rows(page)).toHaveCount(1);
   await expect(rows(page).first()).toContainText('Send invoice');
   await expect(page.getByTestId('quickadd-input')).toHaveValue('');

@@ -3,7 +3,7 @@ import * as nodeFs from 'node:fs';
 import * as path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import type { NewTaskInput, Task, TaskFile, TaskPatch } from './types';
-import { newTaskSchema, parseOrThrow, taskFileSchema, taskPatchSchema, taskSchema } from './validation';
+import { newTaskSchema, parseOrThrow, taskFileSchema, taskPatchSchema, taskSchema, ValidationError } from './validation';
 
 export type Fs = Pick<typeof nodeFs, 'readFileSync' | 'writeFileSync' | 'renameSync' | 'copyFileSync' | 'existsSync' | 'mkdirSync' | 'openSync' | 'fsyncSync' | 'closeSync'>;
 
@@ -113,7 +113,10 @@ export class TaskStore {
     if (i < 0) throw new NotFoundError(`Task ${id} not found`);
     const prev = this.tasks[i];
     const next: Task = { ...prev, ...p, updatedAt: now.toISOString() };
-    if (p.deadline !== undefined) next.deadline = p.deadline ? new Date(p.deadline).toISOString() : null;
+    if (p.deadline !== undefined) {
+      next.deadline = p.deadline ? new Date(p.deadline).toISOString() : null;
+      if (next.deadline !== prev.deadline) next.snoozedUntil = null;
+    }
     if (p.status && p.status !== prev.status) {
       next.completedAt = p.status === 'done' ? now.toISOString() : null;
       next.snoozedUntil = null;
@@ -138,6 +141,22 @@ export class TaskStore {
     this.tasks.push(v);
     this.write();
     return { ...v };
+  }
+
+  /** Snooze a task's reminder until `untilIso` (US-011). */
+  snooze(id: string, untilIso: string, now = new Date()): Task {
+    const i = this.tasks.findIndex((x) => x.id === id);
+    if (i < 0) throw new NotFoundError(`Task ${id} not found`);
+    if (Number.isNaN(Date.parse(untilIso))) throw new ValidationError('Invalid date');
+    this.tasks[i] = { ...this.tasks[i], snoozedUntil: new Date(untilIso).toISOString(), updatedAt: now.toISOString() };
+    this.write();
+    return { ...this.tasks[i] };
+  }
+
+  /** Replace every task (Import, US-016). The previous file becomes the backup. */
+  replaceAll(tasks: Task[]): void {
+    this.tasks = tasks.map((t) => parseOrThrow(taskSchema, t));
+    this.write();
   }
 
   markFired(entries: { taskId: string; key: string }[]): void {

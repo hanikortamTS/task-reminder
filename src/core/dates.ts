@@ -103,3 +103,29 @@ export function fromLocalInput(v: string): string | null {
   const d = new Date(v);
   return Number.isNaN(d.getTime()) ? null : d.toISOString();
 }
+
+/** Snooze choices (SR-006, US-011). */
+export type SnoozeChoice = '10m' | '1h' | 'tomorrow';
+export const SNOOZE_LABELS: Record<SnoozeChoice, string> = { '10m': 'Snooze 10 min', '1h': 'Snooze 1 hour', tomorrow: 'Tomorrow 9:00' };
+
+export function snoozeTarget(choice: SnoozeChoice, now: Date): Date {
+  if (choice === '10m') return new Date(now.getTime() + 10 * MIN);
+  if (choice === '1h') return new Date(now.getTime() + HOUR);
+  return atTime(addDays(now, 1), 9);
+}
+
+/** Reminder offset presets (SR-003, US-008). Minutes before the deadline. */
+export const OFFSET_PRESETS: { minutes: number; label: string }[] = [
+  { minutes: 0, label: 'At deadline' },
+  { minutes: 15, label: '15 min before' },
+  { minutes: 60, label: '1 hour before' },
+  { minutes: 1440, label: '1 day before' },
+];
+
+export function offsetLabel(minutes: number): string {
+  const preset = OFFSET_PRESETS.find((p) => p.minutes === minutes);
+  if (preset) return preset.label;
+  if (minutes % 1440 === 0) return `${minutes / 1440} days before`;
+  if (minutes % 60 === 0) return `${minutes / 60} hours before`;
+  return `${minutes} min before`;
+}

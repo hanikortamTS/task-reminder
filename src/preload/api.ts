@@ -16,10 +16,15 @@ const api = {
     delete: (id: string) => invoke('tasks.delete', id),
     restore: (task: unknown) => invoke('tasks.restore', task),
   },
-  app: { info: () => invoke('app.info') },
+  reminders: { snooze: (id: string, choice: string) => invoke('reminders.snooze', id, choice) },
+  settings: { get: () => invoke('settings.get'), set: (patch: unknown) => invoke('settings.set', patch) },
+  data: { export: () => invoke('data.export'), import: () => invoke('data.import') },
+  app: { info: () => invoke('app.info'), log: (level: string, message: string) => invoke('app.log', level, message) },
+  quick: { close: () => invoke('quick.close') },
   onTasksChanged: (cb: (tasks: unknown) => void) => on('tasks.changed', cb),
   onFocusTask: (cb: (p: unknown) => void) => on('ui.focusTask', cb),
-  onQuickAdd: (cb: (p: unknown) => void) => on('ui.quickAdd', cb),
+  onMissed: (cb: (p: unknown) => void) => on('ui.missed', cb),
+  onQuickReset: (cb: (p: unknown) => void) => on('ui.quickReset', cb),
 };
 
 contextBridge.exposeInMainWorld('api', api);

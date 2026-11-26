@@ -2,18 +2,21 @@
 import { forwardRef, useState } from 'react';
 import { quickChips, type ChipId } from '../../core/dates';
 import type { NewTaskInput } from '../../core/types';
+import { TITLE_MAX } from '../../core/validation';
 
 interface Props {
   now: Date;
   onAdd: (input: NewTaskInput) => Promise<void>;
+  compact?: boolean;
 }
 
-export const QuickAdd = forwardRef<HTMLInputElement, Props>(function QuickAdd({ now, onAdd }, ref) {
+export const QuickAdd = forwardRef<HTMLInputElement, Props>(function QuickAdd({ now, onAdd, compact }, ref) {
   const [title, setTitle] = useState('');
   const [chip, setChip] = useState<ChipId | null>(null);
   const [custom, setCustom] = useState('');
   const [error, setError] = useState('');
   const [shake, setShake] = useState(false);
+  const [notice, setNotice] = useState('');
   const chips = quickChips(now);
 
   const deadline = (): string | null => {
@@ -31,6 +34,7 @@ export const QuickAdd = forwardRef<HTMLInputElement, Props>(function QuickAdd({ 
     }
     try {
       await onAdd({ title, deadline: deadline() });
+      setNotice(title.trim().length > TITLE_MAX ? `Title shortened to ${TITLE_MAX} characters.` : '');
       setTitle('');
       setChip(null);
       setCustom('');
@@ -47,7 +51,7 @@ export const QuickAdd = forwardRef<HTMLInputElement, Props>(function QuickAdd({ 
           ref={ref}
           data-testid="quickadd-input"
           aria-label="New task title"
-          placeholder="Add a task…   (press N)"
+          placeholder={compact ? 'What do you need to do?' : 'Add a task…   (press N)'}
           value={title}
           maxLength={400}
           onChange={(e) => {
@@ -88,6 +92,11 @@ export const QuickAdd = forwardRef<HTMLInputElement, Props>(function QuickAdd({ 
       <div className="hint" role="alert" data-testid="quickadd-error">
         {error}
       </div>
+      {notice && !error && (
+        <div className="notice" role="status" data-testid="quickadd-notice">
+          {notice}
+        </div>
+      )}
     </div>
   );
 });
